@@ -110,6 +110,6 @@ func showPathInstructions() {
 	fmt.Println("\n💡 To use installed programs, add this to your shell profile:")
 	fmt.Printf("   export PATH=\"%s:$PATH\"\n", binDir)
 	fmt.Println("\nThen restart your shell or run:")
-	fmt.Printf("   source ~/.zshrc  # or ~/.bashrc\n\n")
+	fmt.Printf("   `source ~/.zshrc` or `source ~/.bashrc`\n\n")
 }
 

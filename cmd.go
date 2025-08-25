@@ -135,10 +135,10 @@ func showUsage() {
     \|_______|    \|_______|    \|__|       \|_______|    \|__|\|__|        \|__|    \|__|    \|__| \|__|    \|_______|`)
 	fmt.Println("")
 	fmt.Println("Usage:")
-	fmt.Println("  cpt install <package>  Install a package")
-	fmt.Println("  cpt remove <package>   Remove a package")
-	fmt.Println("  cpt list               List installed packages")
-	fmt.Println("  cpt help               Show this help")
+	fmt.Println("  cpt install <package>    Install a package")
+	fmt.Println("  cpt uninstall <package>  Remove a package")
+	fmt.Println("  cpt list                 List installed packages")
+	fmt.Println("  cpt help                 Show this help")
 }
 
 func testDatabase() {
