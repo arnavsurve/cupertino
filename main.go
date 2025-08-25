@@ -20,13 +20,13 @@ func main() {
 			return
 		}
 		install(os.Args[2:])
-	case "remove":
+	case "uninstall":
 		if len(os.Args) < 3 {
-			fmt.Println("Error: remove requires a package name")
-			fmt.Println("Usage: cpt remove <package>")
+			fmt.Println("Error: uninstall requires a package name")
+			fmt.Println("Usage: cpt uninstall <package>")
 			return
 		}
-		remove(os.Args[2:])
+		uninstall(os.Args[2:])
 	case "list":
 		list()
 	case "help", "--help", "-h":

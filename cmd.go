@@ -25,7 +25,7 @@ func install(args []string) {
 	fmt.Println("✅ Package installed successfully.")
 }
 
-func remove(args []string) {
+func uninstall(args []string) {
 	packageName := args[0]
 
 	db, err := NewSQLitePackageDB(getDatabasePath())
@@ -47,7 +47,7 @@ func remove(args []string) {
 	}
 
 	if len(dependents) > 0 {
-		fmt.Printf("Cannot remove '%s' - the following packages are dependents:\n", packageName)
+		fmt.Printf("Cannot uninstall '%s' - the following packages are dependents:\n", packageName)
 		for _, dep := range dependents {
 			fmt.Printf("  - %s %s\n", dep.Name, dep.Version)
 		}
@@ -60,7 +60,7 @@ func remove(args []string) {
 		return
 	}
 
-	fmt.Printf("Removing %s v%s...\n", pkg.Name, pkg.Version)
+	fmt.Printf("Uninstalling %s v%s...\n", pkg.Name, pkg.Version)
 
 	dirsToCleanup := make(map[string]bool)
 	filesRemoved := 0
@@ -85,11 +85,11 @@ func remove(args []string) {
 	removeSymlinks(pkg)
 
 	if err := db.Remove(packageName); err != nil {
-		fmt.Printf("Error removing from database: %v\n", err)
+		fmt.Printf("Error deleting from database: %v\n", err)
 		return
 	}
 
-	fmt.Printf("Successfully removed %s (%d files)\n", packageName, filesRemoved)
+	fmt.Printf("✅ Successfully uninstalled %s (%d files)\n", packageName, filesRemoved)
 }
 
 func list() {
