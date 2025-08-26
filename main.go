@@ -31,9 +31,12 @@ func main() {
 		list()
 	case "help", "--help", "-h":
 		showUsage()
-	case "debug":
+	case "test-db":
 		testDatabase()
-		return
+	case "test-versions":
+		testVersions()
+	case "test-deps":
+		testDependencyResolution()
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
 		showUsage()
