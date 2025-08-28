@@ -39,8 +39,11 @@ func extractTarGz(tarballPath, destDir string) error {
 		}
 
 		target := filepath.Join(destDir, header.Name)
+		cleanTarget := filepath.Clean(target)
+		cleanDest := filepath.Clean(destDir)
 
-		if !strings.HasPrefix(target, filepath.Clean(destDir)+string(os.PathSeparator)) {
+		if !strings.HasPrefix(cleanTarget, cleanDest) ||
+			(len(cleanTarget) > len(cleanDest) && cleanTarget[len(cleanDest)] != os.PathSeparator) {
 			return fmt.Errorf("path traversal attempt: %s", header.Name)
 		}
 
@@ -112,16 +115,14 @@ func copyFile(src, dest string) error {
 }
 
 func validatePath(path string) error {
-	if strings.Contains(path, "..") {
-		return fmt.Errorf("path contains '...' sequence: %s", path)
+	cleaned := filepath.Clean(path)
+
+	if strings.HasPrefix(cleaned, "..") || strings.Contains(cleaned, "../") {
+		return fmt.Errorf("path traversal attempt: %s", path)
 	}
 
-	if filepath.IsAbs(path) {
+	if filepath.IsAbs(cleaned) {
 		return fmt.Errorf("absolute path not allowed: %s", path)
-	}
-
-	if strings.HasPrefix(path, "/") {
-		return fmt.Errorf("path starts with '/': %s", path)
 	}
 
 	return nil
