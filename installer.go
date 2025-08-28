@@ -69,8 +69,7 @@ func installFromTarball(tarballPath string) error {
 		fmt.Printf("Warning: failed to create symlinks: %v\n", err)
 	}
 
-	showPathInstructions()
-
+	fmt.Printf("✅ Successfully installed %s v%s.\n", pkg.Name, pkg.Version)
 	return nil
 }
 
@@ -93,4 +92,3 @@ func parsePackageManifest(manifestPath string) (*Package, error) {
 
 	return &pkg, nil
 }
-

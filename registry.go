@@ -134,6 +134,7 @@ func installFromRegistry(packageSpec string) error {
 		}
 	}
 
+	fmt.Printf("✅ Successfully installed %s v%s.\n", rootPkg.Name, rootPkg.Version)
 	return nil
 }
 
