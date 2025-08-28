@@ -62,6 +62,8 @@ func main() {
 		list()
 	case "help", "--help", "-h":
 		showUsage()
+	case "version", "--version", "-v":
+		showVersion()
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
 		showUsage()

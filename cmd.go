@@ -82,7 +82,7 @@ func uninstall(args []string) {
 				fmt.Printf("Warning: could not remove %s: %v\n", filePath, err)
 			}
 		} else {
-			fmt.Printf("🗑️ Removed %s\n", filePath)
+			fmt.Printf("Removed %s\n", filePath)
 			filesRemoved++
 
 			dirsToCleanup[filepath.Dir(filePath)] = true
@@ -191,4 +191,8 @@ func showUsage() {
 	fmt.Println("  cupertino uninstall <package>  Remove a package")
 	fmt.Println("  cupertino list                 List installed packages")
 	fmt.Println("  cupertino help                 Show this help")
+}
+
+func showVersion() {
+	fmt.Println("cupertino v1.0.0")
 }

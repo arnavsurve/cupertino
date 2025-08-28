@@ -34,7 +34,7 @@ func cleanupEmptyDirs(startPath string) {
 			break
 		}
 
-		fmt.Printf("🗑️ Removed empty directory %s\n", dir)
+		fmt.Printf("Removed empty directory %s\n", dir)
 
 		dir = filepath.Dir(dir)
 	}
