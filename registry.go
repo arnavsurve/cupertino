@@ -71,7 +71,7 @@ func installFromRegistry(packageSpec string) error {
 func parsePackageSpec(spec string) (name, version string) {
 	if strings.Contains(spec, "@") {
 		parts := strings.SplitN(spec, "@", 2)
-		return parts[0], parts[2]
+		return parts[0], parts[1]
 	}
 
 	return spec, ""
