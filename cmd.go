@@ -124,6 +124,47 @@ func list() {
 	}
 }
 
+func brewInstall(args []string) {
+	if len(args) == 0 {
+		fmt.Println("Error: cpt brew install requires a package name")
+		return
+	}
+
+	packageName := args[0]
+	fmt.Printf("Fetching Homebrew formula for %s...\n", packageName)
+
+	formula, err := fetchHomebrewFormula(packageName)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("Found %s v%s\n", formula.Name, formula.Versions.Stable)
+	fmt.Printf("Dependencies: %v\n", formula.Dependencies)
+
+	bottleURL, checksum, err := getBottleURL(formula)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	bottlePath, err := downloadBottle(bottleURL, checksum)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+	defer os.Remove(bottlePath)
+
+	pkg := convertToPackage(formula)
+
+	if err := installBottle(bottlePath, pkg); err != nil {
+		fmt.Printf("Error installing bottle: %v\n", err)
+		return
+	}
+
+	fmt.Printf("✅ Successfully installed %s v%s from Homebrew\n", pkg.Name, pkg.Version)
+}
+
 func showUsage() {
 	fmt.Println(`
  ________      ___  ___      ________    _______       ________      _________    ___      ________       ________     
