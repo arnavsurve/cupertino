@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -19,7 +20,35 @@ func main() {
 			fmt.Println("Usage: cpt install <package>")
 			return
 		}
-		install(os.Args[2:])
+
+		packageArg := os.Args[2]
+
+		if strings.HasPrefix(packageArg, ".tar.gz") || strings.Contains(packageArg, "/") {
+			// Local file
+			err := installFromTarball(packageArg)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			}
+		} else {
+			// Registry package
+			err := installFromRegistry(packageArg)
+			if err != nil {
+				fmt.Printf("Error: %v\n", err)
+			}
+		}
+	case "brew":
+		if len(os.Args) < 3 {
+			fmt.Println("Error: brew requires a subcommand")
+			fmt.Println("Usage: cpt brew <subcommand>")
+			return
+		}
+		subcommand := os.Args[2]
+		switch subcommand {
+		case "install":
+			brewInstall(os.Args[3:])
+		default:
+			fmt.Printf("Unknown command: %s\n", command)
+		}
 	case "uninstall":
 		if len(os.Args) < 3 {
 			fmt.Println("Error: uninstall requires a package name")
@@ -42,4 +71,3 @@ func main() {
 		showUsage()
 	}
 }
-
