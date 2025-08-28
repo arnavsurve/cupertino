@@ -4,23 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
 func getCupertinoDir() string {
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return ".cupertino"
-	}
-
-	cupertinoDir := filepath.Join(homeDir, ".cupertino")
-
-	if err := os.MkdirAll(cupertinoDir, 0755); err != nil {
-		fmt.Printf("Warning: Could not create %s: %v\n", cupertinoDir, err)
-		return ".cupertino"
-	}
-
-	return cupertinoDir
+	return "/opt/cupertino"
 }
 
 func getDatabasePath() string {
@@ -113,3 +102,16 @@ func showPathInstructions() {
 	fmt.Printf("   `source ~/.zshrc` or `source ~/.bashrc`\n\n")
 }
 
+func detectPlatform() string {
+	if runtime.GOOS != "darwin" {
+		if runtime.GOARCH == "arm64" {
+			return "arm64_linux"
+		}
+		return "x86_64_linux"
+	}
+
+	if runtime.GOARCH == "arm64" {
+		return "arm64_sonoma"
+	}
+	return "sonoma"
+}
