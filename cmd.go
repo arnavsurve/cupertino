@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"time"
 )
 
 func install(args []string) {
@@ -35,7 +34,7 @@ func uninstall(args []string) {
 	}
 	defer db.Close()
 
-	if !db.IsInstalled(packageName) {
+	if !db.HasAnyVersion(packageName) {
 		fmt.Printf("Package '%s' is not installed\n", packageName)
 		return
 	}
@@ -180,51 +179,6 @@ func showUsage() {
 	fmt.Println("  cupertino uninstall <package>  Remove a package")
 	fmt.Println("  cupertino list                 List installed packages")
 	fmt.Println("  cupertino help                 Show this help")
-}
-
-func testDatabase() {
-	db, err := NewSQLitePackageDB("/tmp/test_cupertino.db")
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	testPkg := &InstalledPackage{
-		Package: Package{
-			Name:        "test-package",
-			Version:     "1.0.0",
-			Description: "A test package",
-			Dependencies: map[string]string{
-				"git": ">=2.0",
-			},
-		},
-		InstallPath:    "/Users/test/.cupertino/packages/test-package/1.0.0",
-		InstalledFiles: []string{"bin/test", "share/man/man1/test.1"},
-		InstallDate:    time.Now(),
-	}
-
-	if err := db.Install(testPkg); err != nil {
-		panic(err)
-	}
-
-	if !db.IsInstalled("test-package") {
-		panic("Package should be installed")
-	}
-
-	retrieved, err := db.Get("test-package")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Retrieved package: %s v%s\n", retrieved.Name, retrieved.Version)
-	fmt.Printf("Files: %v\n", retrieved.InstalledFiles)
-
-	packages, err := db.List()
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Printf("Total packages: %d\n", len(packages))
 }
 
 func testVersions() {

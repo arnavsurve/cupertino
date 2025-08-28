@@ -68,40 +68,61 @@ func resolveDepsRecursive(
 }
 
 func fetchPackage(name, constraintStr string) (*Package, error) {
+	satisfied, err := satisfiesDependencyConstraint(name, constraintStr)
+	if err == nil && satisfied {
+		db, err := NewSQLitePackageDB(getDatabasePath())
+		if err == nil {
+			defer db.Close()
+			if installedPkg, err := db.Get(name); err == nil {
+				return &installedPkg.Package, nil
+			}
+		}
+	}
+
+	registryURL := getRegistryURL()
 	constraint, err := ParseConstraint(constraintStr)
 	if err != nil {
 		return nil, err
 	}
 
-	// TODO: registry lookup
-	mockPackages := getMockPackages()
+	packageInfo, err := getPackageInfo(registryURL, name)
+	if err != nil {
+		return nil, err
+	}
 
-	for _, pkg := range mockPackages[name] {
-		version, err := ParseVersion(pkg.Version)
+	var bestVersion string
+	var bestVersionParsed Version
+
+	for _, versionStr := range packageInfo.Versions {
+		version, err := ParseVersion(versionStr)
 		if err != nil {
-			continue
+			continue // Skip invalid versions
 		}
 
 		if constraint.Satisfies(version) {
-			return pkg, nil
+			if bestVersion == "" || version.Compare(bestVersionParsed) > 0 {
+				bestVersion = versionStr
+				bestVersionParsed = version
+			}
 		}
 	}
-	return nil, fmt.Errorf("no version of %s satisfies constraint %s", name, constraintStr)
-}
 
-// Mock package database for testing
-func getMockPackages() map[string][]*Package {
-	return map[string][]*Package{
-		"git": {
-			{Name: "git", Version: "2.42.0", Dependencies: map[string]string{"openssl": ">=1.1.0"}},
-			{Name: "git", Version: "2.41.0", Dependencies: map[string]string{"openssl": ">=1.0.0"}},
-		},
-		"openssl": {
-			{Name: "openssl", Version: "3.0.0", Dependencies: map[string]string{}},
-			{Name: "openssl", Version: "1.1.1", Dependencies: map[string]string{}},
-		},
-		"node": {
-			{Name: "node", Version: "18.17.0", Dependencies: map[string]string{"openssl": "^3.0.0"}},
-		},
+	if bestVersion == "" {
+		return nil, fmt.Errorf("no version of %s satisfies constraint %s", name, constraintStr)
 	}
+
+	regPkg, err := getSpecificPackage(registryURL, name, bestVersion)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Package{
+		Name:         regPkg.Name,
+		Version:      regPkg.Version,
+		Description:  regPkg.Description,
+		Homepage:     regPkg.Homepage,
+		License:      regPkg.License,
+		Dependencies: regPkg.Dependencies,
+		Files:        regPkg.Files,
+	}, nil
 }

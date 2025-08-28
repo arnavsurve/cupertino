@@ -60,8 +60,6 @@ func main() {
 		list()
 	case "help", "--help", "-h":
 		showUsage()
-	case "test-db":
-		testDatabase()
 	case "test-versions":
 		testVersions()
 	case "test-deps":

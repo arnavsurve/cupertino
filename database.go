@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -162,10 +163,51 @@ func (db *SQLitePackageDB) Remove(name string) error {
 	return err
 }
 
-func (db *SQLitePackageDB) IsInstalled(name string) bool {
-	var exists bool
-	err := db.db.QueryRow("SELECT EXISTS(SELECT 1 FROM packages WHERE name = ?)", name).Scan(&exists)
-	return err == nil && exists
+func (db *SQLitePackageDB) IsInstalledVersion(name, version string) bool {
+	query := "SELECT COUNT(*) FROM packages WHERE name = ? AND version = ?"
+	var count int
+	err := db.db.QueryRow(query, name, version).Scan(&count)
+	if err != nil {
+		return false
+	}
+	return count > 0
+}
+
+func (db *SQLitePackageDB) GetInstalledVersion(name string) (string, error) {
+	query := "SELECT version FROM packages WHERE name = ? LIMIT 1"
+	var version string
+	err := db.db.QueryRow(query, name).Scan(&version)
+	if err != nil {
+		return "", fmt.Errorf("package %s not installed", name)
+	}
+	return version, nil
+}
+
+func (db *SQLitePackageDB) GetInstalledVersions(name string) ([]string, error) {
+	query := "SELECT version FROM packages WHERE name = ? ORDER BY install_date DESC"
+	rows, err := db.db.Query(query, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var versions []string
+	for rows.Next() {
+		var version string
+		if err := rows.Scan(&version); err != nil {
+			continue
+		}
+		versions = append(versions, version)
+	}
+
+	return versions, nil
+}
+
+func (db *SQLitePackageDB) HasAnyVersion(name string) bool {
+	query := "SELECT COUNT(*) FROM packages WHERE name = ?"
+	var count int
+	err := db.db.QueryRow(query, name).Scan(&count)
+	return err == nil && count > 0
 }
 
 func (db *SQLitePackageDB) GetDependents(packageName string) ([]*InstalledPackage, error) {
@@ -209,7 +251,7 @@ func (db *SQLitePackageDB) GetDependencies(packageName string) ([]*InstalledPack
 			return nil, err
 		}
 
-		if db.IsInstalled(depName) {
+		if db.HasAnyVersion(depName) {
 			pkg, err := db.Get(depName)
 			if err != nil {
 				return nil, err
