@@ -126,7 +126,7 @@ func list() {
 
 func brewInstall(args []string) {
 	if len(args) == 0 {
-		fmt.Println("Error: cpt brew install requires a package name")
+		fmt.Println("Error: cupertino brew install requires a package name")
 		return
 	}
 
@@ -176,10 +176,10 @@ func showUsage() {
     \|_______|    \|_______|    \|__|       \|_______|    \|__|\|__|        \|__|    \|__|    \|__| \|__|    \|_______|`)
 	fmt.Println("")
 	fmt.Println("Usage:")
-	fmt.Println("  cpt install <package>    Install a package")
-	fmt.Println("  cpt uninstall <package>  Remove a package")
-	fmt.Println("  cpt list                 List installed packages")
-	fmt.Println("  cpt help                 Show this help")
+	fmt.Println("  cupertino install <package>    Install a package")
+	fmt.Println("  cupertino uninstall <package>  Remove a package")
+	fmt.Println("  cupertino list                 List installed packages")
+	fmt.Println("  cupertino help                 Show this help")
 }
 
 func testDatabase() {
@@ -278,4 +278,3 @@ func testDependencyResolution() {
 		fmt.Printf("- %s@%s\n", pkg.Name, pkg.Version)
 	}
 }
-

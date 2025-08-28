@@ -17,7 +17,7 @@ func main() {
 	case "install":
 		if len(os.Args) < 3 {
 			fmt.Println("Error: install requires a package name")
-			fmt.Println("Usage: cpt install <package>")
+			fmt.Println("Usage: cupertino install <package>")
 			return
 		}
 
@@ -36,23 +36,23 @@ func main() {
 				fmt.Printf("Error: %v\n", err)
 			}
 		}
-	case "brew":
-		if len(os.Args) < 3 {
-			fmt.Println("Error: brew requires a subcommand")
-			fmt.Println("Usage: cpt brew <subcommand>")
-			return
-		}
-		subcommand := os.Args[2]
-		switch subcommand {
-		case "install":
-			brewInstall(os.Args[3:])
-		default:
-			fmt.Printf("Unknown command: %s\n", command)
-		}
+	// case "brew":
+	// 	if len(os.Args) < 3 {
+	// 		fmt.Println("Error: brew requires a subcommand")
+	// 		fmt.Println("Usage: cupertino brew <subcommand>")
+	// 		return
+	// 	}
+	// 	subcommand := os.Args[2]
+	// 	switch subcommand {
+	// 	case "install":
+	// 		brewInstall(os.Args[3:])
+	// 	default:
+	// 		fmt.Printf("Unknown command: %s\n", command)
+	// 	}
 	case "uninstall":
 		if len(os.Args) < 3 {
 			fmt.Println("Error: uninstall requires a package name")
-			fmt.Println("Usage: cpt uninstall <package>")
+			fmt.Println("Usage: cupertino uninstall <package>")
 			return
 		}
 		uninstall(os.Args[2:])
