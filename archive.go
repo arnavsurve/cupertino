@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func extractTarGz(tarballPath, destDir string) error {
@@ -31,6 +32,16 @@ func extractTarGz(tarballPath, destDir string) error {
 		}
 		if err != nil {
 			return fmt.Errorf("reading tar header: %v", err)
+		}
+
+		if err := validatePath(header.Name); err != nil {
+			return fmt.Errorf("invalid path in archive: %v", err)
+		}
+
+		target := filepath.Join(destDir, header.Name)
+
+		if !strings.HasPrefix(target, filepath.Clean(destDir)+string(os.PathSeparator)) {
+			return fmt.Errorf("path traversal attempt: %s", header.Name)
 		}
 
 		// Skip directories, we create them as needed
@@ -99,3 +110,20 @@ func copyFile(src, dest string) error {
 
 	return nil
 }
+
+func validatePath(path string) error {
+	if strings.Contains(path, "..") {
+		return fmt.Errorf("path contains '...' sequence: %s", path)
+	}
+
+	if filepath.IsAbs(path) {
+		return fmt.Errorf("absolute path not allowed: %s", path)
+	}
+
+	if strings.HasPrefix(path, "/") {
+		return fmt.Errorf("path starts with '/': %s", path)
+	}
+
+	return nil
+}
+
