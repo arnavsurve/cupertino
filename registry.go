@@ -86,10 +86,21 @@ func installFromRegistry(packageSpec string) error {
 		fmt.Printf("  %s v%s\n", pkg.Name, pkg.Version)
 	}
 
+	fmt.Printf("The following packages will be installed:\n")
 	for _, pkg := range result.Packages {
+		fmt.Printf("  %s v%s\n", pkg.Name, pkg.Version)
+	}
+
+	if !confirmAction("Continue with installation?") {
+		fmt.Println("Installation cancelled.")
+		return nil
+	}
+
+	for _, pkg := range result.Packages {
+
 		shouldInstall, reason, err := evaluateInstallationNeed(pkg.Name, pkg.Version)
 		if err != nil {
-			return fmt.Errorf("failed to evalurate installation need for %s: %v", pkg.Name, err)
+			return fmt.Errorf("failed to evaluate installation need for %s: %v", pkg.Name, err)
 		}
 
 		if !shouldInstall {

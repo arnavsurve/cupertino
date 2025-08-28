@@ -73,6 +73,11 @@ func createSymlinks(pkg *InstalledPackage) error {
 		}
 	}
 
+	if shouldShowPathInstructions() {
+		showPathInstructions()
+		markPathInstructionsShown()
+	}
+
 	return nil
 }
 
@@ -114,4 +119,28 @@ func detectPlatform() string {
 		return "arm64_sonoma"
 	}
 	return "sonoma"
+}
+
+func isPathConfigured() bool {
+	binDir := getBinDir()
+	pathEnv := os.Getenv("PATH")
+	return strings.Contains(pathEnv, binDir)
+}
+
+func shouldShowPathInstructions() bool {
+	if isPathConfigured() {
+		return false
+	}
+
+	instructionsFile := filepath.Join(getCupertinoDir(), ".path_instructions_shown")
+	if _, err := os.Stat(instructionsFile); err == nil {
+		return false
+	}
+
+	return true
+}
+
+func markPathInstructionsShown() {
+	instructionsFile := filepath.Join(getCupertinoDir(), ".path_instructions_shown")
+	os.WriteFile(instructionsFile, []byte(""), 0644)
 }

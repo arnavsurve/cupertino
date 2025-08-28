@@ -1,28 +1,30 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"os"
 	"strings"
 )
 
 func main() {
-	if len(os.Args) < 2 {
+	flag.Parse()
+	args := flag.Args()
+
+	if len(args) == 0 {
 		showUsage()
 		return
 	}
 
-	command := os.Args[1]
+	command := args[0]
 	switch command {
 	case "install":
-		if len(os.Args) < 3 {
+		if len(args) < 2 {
 			fmt.Println("Error: install requires a package name")
 			fmt.Println("Usage: cupertino install <package>")
 			return
 		}
 
-		packageArg := os.Args[2]
-
+		packageArg := args[1]
 		if strings.HasPrefix(packageArg, ".tar.gz") || strings.Contains(packageArg, "/") {
 			// Local file
 			err := installFromTarball(packageArg)
@@ -50,20 +52,16 @@ func main() {
 	// 		fmt.Printf("Unknown command: %s\n", command)
 	// 	}
 	case "uninstall":
-		if len(os.Args) < 3 {
+		if len(args) < 2 {
 			fmt.Println("Error: uninstall requires a package name")
 			fmt.Println("Usage: cupertino uninstall <package>")
 			return
 		}
-		uninstall(os.Args[2:])
+		uninstall(args[1:])
 	case "list":
 		list()
 	case "help", "--help", "-h":
 		showUsage()
-	case "test-versions":
-		testVersions()
-	case "test-deps":
-		testDependencyResolution()
 	default:
 		fmt.Printf("Unknown command: %s\n", command)
 		showUsage()

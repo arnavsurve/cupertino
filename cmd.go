@@ -1,27 +1,32 @@
 package main
 
 import (
+	"bufio"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func install(args []string) {
-	packagePath := args[0]
+var yesFlag = flag.Bool("y", false, "Assume yes to all prompts")
 
-	if _, err := os.Stat(packagePath); os.IsNotExist(err) {
-		fmt.Printf("Error: package file '%s' not found\n", packagePath)
-		return
+func init() {
+	flag.Parse()
+}
+
+func confirmAction(message string) bool {
+	if *yesFlag {
+		return true
 	}
 
-	fmt.Printf("Installing package from %s...\n", packagePath)
-
-	if err := installFromTarball(packagePath); err != nil {
-		fmt.Printf("Error installing package: %v\n", err)
-		return
+	fmt.Printf("%s (y/N): ", message)
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		response := strings.ToLower(strings.TrimSpace(scanner.Text()))
+		return response == "y" || response == "yes" || response == "Y" || response == "Yes" || response == "YES"
 	}
-
-	fmt.Println("✅ Package installed successfully.")
+	return false
 }
 
 func uninstall(args []string) {
@@ -50,6 +55,13 @@ func uninstall(args []string) {
 		for _, dep := range dependents {
 			fmt.Printf("  - %s %s\n", dep.Name, dep.Version)
 		}
+
+		if !confirmAction("Uninstall anyway? (This may break dependent packages)") {
+			fmt.Println("Uninstall cancelled.")
+			return
+		}
+	} else if !confirmAction(fmt.Sprintf("Remove %s?", packageName)) {
+		fmt.Println("Uninstall cancelled.")
 		return
 	}
 
@@ -179,56 +191,4 @@ func showUsage() {
 	fmt.Println("  cupertino uninstall <package>  Remove a package")
 	fmt.Println("  cupertino list                 List installed packages")
 	fmt.Println("  cupertino help                 Show this help")
-}
-
-func testVersions() {
-	// Test version parsing
-	v1, _ := ParseVersion("1.2.3")
-	v2, _ := ParseVersion("1.3.0")
-	v3, _ := ParseVersion("2.0.0")
-
-	fmt.Printf("1.2.3 vs 1.3.0: %d\n", v1.Compare(v2)) // Should be -1
-	fmt.Printf("1.3.0 vs 1.2.3: %d\n", v2.Compare(v1)) // Should be 1
-	fmt.Printf("1.2.3 vs 1.2.3: %d\n", v1.Compare(v1)) // Should be 0
-
-	// Test constraints
-	constraint1, _ := ParseConstraint(">=1.2.0")
-	constraint2, _ := ParseConstraint("^1.2.0")
-	constraint3, _ := ParseConstraint("~1.2.0")
-
-	fmt.Printf(">=1.2.0 satisfies 1.2.3: %v\n", constraint1.Satisfies(v1)) // true
-	fmt.Printf(">=1.2.0 satisfies 2.0.0: %v\n", constraint1.Satisfies(v3)) // true
-	fmt.Printf("^1.2.0 satisfies 1.3.0: %v\n", constraint2.Satisfies(v2))  // true
-	fmt.Printf("^1.2.0 satisfies 2.0.0: %v\n", constraint2.Satisfies(v3))  // false
-	fmt.Printf("~1.2.0 satisfies 1.2.3: %v\n", constraint3.Satisfies(v1))  // true
-	fmt.Printf("~1.2.0 satisfies 1.3.0: %v\n", constraint3.Satisfies(v2))  // false
-}
-
-func testDependencyResolution() {
-	// Create a test package that depends on git
-	testPkg := &Package{
-		Name:    "test-app",
-		Version: "1.0.0",
-		Dependencies: map[string]string{
-			"git":  ">=2.40.0",
-			"node": "^18.0.0",
-		},
-	}
-
-	fmt.Println("Resolving dependencies for test-app...")
-	result, err := ResolveDependencies(testPkg)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-
-	fmt.Println("Install order:")
-	for i, name := range result.Order {
-		fmt.Printf("%d. %s\n", i+1, name)
-	}
-
-	fmt.Println("\nResolved packages:")
-	for _, pkg := range result.Packages {
-		fmt.Printf("- %s@%s\n", pkg.Name, pkg.Version)
-	}
 }
