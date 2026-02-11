@@ -2,7 +2,11 @@ import { neon } from "@neondatabase/serverless";
 import type { Package, PackageInfo, PackageUpload, RegistryStats } from "./types";
 
 function getClient() {
-  return neon(process.env.DATABASE_URL!);
+  const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+  if (!url) {
+    throw new Error("No database connection string was provided. Set DATABASE_URL or POSTGRES_URL.");
+  }
+  return neon(url);
 }
 
 export async function ensureTables() {
