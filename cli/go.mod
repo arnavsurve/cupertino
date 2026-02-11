@@ -1,4 +1,4 @@
-module github.com/arnavsurve/cupertino
+module github.com/arnavsurve/cupertino/cli
 
 go 1.24.2
 

@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap');
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #000;
+    background: #fff;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+a {
+    color: #0000ff;
+    text-decoration: underline;
+}
+
+a:visited {
+    color: #800080;
+}
+
+a:hover {
+    background: #e0e0e0;
+}
+
+h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+h2 {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 20px 0 10px 0;
+}
+
+h3 {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 15px 0 5px 0;
+}
+
+p {
+    margin-bottom: 10px;
+}
+
+ul, ol {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+/* Header */
+header {
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+}
+
+nav {
+    margin-top: 5px;
+}
+
+nav a {
+    margin-right: 15px;
+}
+
+/* Forms */
+input[type="text"] {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    padding: 4px 6px;
+    width: 300px;
+}
+
+input[type="text"]:focus {
+    outline: 1px solid #000;
+    border-color: #000;
+}
+
+button {
+    font-family: 'Geist Mono', monospace;
+    font-size: 14px;
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #e0e0e0;
+}
+
+button:active {
+    background: #d0d0d0;
+}
+
+/* Stats */
+.stats {
+    margin: 20px 0;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background: #f9f9f9;
+}
+
+.stats p {
+    margin: 5px 0;
+}
+
+/* Package list */
+.package {
+    margin: 15px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.package-name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.package-meta {
+    color: #666;
+    font-size: 13px;
+    margin: 5px 0;
+}
+
+.package-description {
+    margin: 5px 0;
+}
+
+.install-command {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 5px;
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    margin: 5px 0;
+    display: inline-block;
+}
+
+/* Search results */
+.search-results {
+    border: 1px solid #ccc;
+    background: #fff;
+    margin-top: 5px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.search-result {
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-result:last-child {
+    border-bottom: none;
+}
+
+.search-result:hover {
+    background: #f5f5f5;
+}
+
+.search-loading,
+.search-no-results,
+.search-error {
+    padding: 10px;
+    text-align: center;
+    color: #666;
+}
+
+.search-error {
+    color: #cc0000;
+}
+
+/* Package detail page */
+.version {
+    margin: 15px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+}
+
+.version-header {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.version-info {
+    margin: 8px 0;
+}
+
+.version-info div {
+    margin: 3px 0;
+}
+
+.checksum {
+    font-size: 12px;
+    word-break: break-all;
+    color: #666;
+}
+
+.dependencies {
+    margin: 8px 0;
+}
+
+.dependencies ul {
+    margin-left: 15px;
+}
+
+.files {
+    margin: 8px 0;
+}
+
+.file-mapping {
+    font-size: 13px;
+    margin: 2px 0;
+}
+
+/* Copy button */
+.copy-btn {
+    font-size: 12px;
+    padding: 2px 4px;
+    margin-left: 5px;
+}
+
+/* Footer */
+footer {
+    border-top: 1px solid #ccc;
+    margin-top: 30px;
+    padding-top: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+footer a {
+    margin-right: 10px;
+}
+
+/* Simple responsive behavior */
+@media (max-width: 600px) {
+    body {
+        padding: 10px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        max-width: 250px;
+    }
+
+    .install-command {
+        display: block;
+        word-break: break-all;
+    }
+}

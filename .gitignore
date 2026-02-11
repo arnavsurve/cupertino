@@ -1,5 +1,25 @@
+# CLI build artifacts
+cli/cupertino
+cli/cpt
+cli/main
+
+# Test artifacts
 test-packages/
-cpt
-cupertino
-main
 TODO.md
+
+# Next.js / Node
+web/node_modules/
+web/.next/
+web/out/
+
+# Environment files
+.env
+.env.local
+.env*.local
+
+# Database files (dev)
+*.db
+*.db-journal
+
+# OS files
+.DS_Store
