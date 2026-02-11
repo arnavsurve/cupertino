@@ -1,12 +1,22 @@
 import { neon } from "@neondatabase/serverless";
 import type { Package, PackageInfo, PackageUpload, RegistryStats } from "./types";
 
+let tablesEnsured = false;
+
 function getClient() {
   const url = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
   if (!url) {
     throw new Error("No database connection string was provided. Set DATABASE_URL or POSTGRES_URL.");
   }
   return neon(url);
+}
+
+async function withTables() {
+  if (!tablesEnsured) {
+    await ensureTables();
+    tablesEnsured = true;
+  }
+  return getClient();
 }
 
 export async function ensureTables() {
@@ -51,7 +61,7 @@ export async function addPackage(pkg: {
   size: number;
   downloadUrl: string;
 }): Promise<Package> {
-  const sql = getClient();
+  const sql = await withTables();
   const rows = await sql`
     INSERT INTO packages (name, version, description, homepage, license,
                           dependencies, files, checksum, size, upload_date, download_url)
@@ -66,7 +76,7 @@ export async function addPackage(pkg: {
 }
 
 export async function getPackage(name: string, version: string): Promise<Package | null> {
-  const sql = getClient();
+  const sql = await withTables();
   const rows = await sql`
     SELECT name, version, description, homepage, license, dependencies,
            files, checksum, size, upload_date, download_url, downloads
@@ -78,7 +88,7 @@ export async function getPackage(name: string, version: string): Promise<Package
 }
 
 export async function getPackageInfo(name: string): Promise<PackageInfo | null> {
-  const sql = getClient();
+  const sql = await withTables();
   const infoRows = await sql`
     SELECT DISTINCT name, description, homepage, license
     FROM packages
@@ -114,7 +124,7 @@ export async function getPackageInfo(name: string): Promise<PackageInfo | null> 
 }
 
 export async function listPackages(limit: number, offset: number): Promise<PackageInfo[]> {
-  const sql = getClient();
+  const sql = await withTables();
   const rows = await sql`
     SELECT name, description, homepage, license,
            STRING_AGG(version, ',' ORDER BY upload_date DESC) as versions,
@@ -144,7 +154,7 @@ export async function searchPackages(
   limit: number,
   offset: number
 ): Promise<PackageInfo[]> {
-  const sql = getClient();
+  const sql = await withTables();
   const searchTerm = `%${query}%`;
   const exactTerm = `${query}%`;
 
@@ -183,7 +193,7 @@ export async function updatePackage(
   name: string,
   updates: Record<string, string>
 ): Promise<boolean> {
-  const sql = getClient();
+  const sql = await withTables();
   const allowedFields = ["description", "homepage", "license"];
 
   for (const field of Object.keys(updates)) {
@@ -207,7 +217,7 @@ export async function updatePackage(
 }
 
 export async function deletePackage(name: string): Promise<string[]> {
-  const sql = getClient();
+  const sql = await withTables();
 
   const rows = await sql`
     SELECT version FROM packages WHERE name = ${name}
@@ -230,7 +240,7 @@ export async function incrementDownload(
   ipAddress: string,
   userAgent: string
 ): Promise<void> {
-  const sql = getClient();
+  const sql = await withTables();
   await sql`
     UPDATE packages SET downloads = downloads + 1
     WHERE name = ${packageName} AND version = ${version}
@@ -242,7 +252,7 @@ export async function incrementDownload(
 }
 
 export async function getStats(): Promise<RegistryStats> {
-  const sql = getClient();
+  const sql = await withTables();
   const statsRow = await sql`
     SELECT COUNT(DISTINCT name)::int as total_packages,
            COALESCE(SUM(downloads), 0)::int as total_downloads
