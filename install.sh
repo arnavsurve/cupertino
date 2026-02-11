@@ -121,19 +121,23 @@ if [[ "${need_setup}" == "true" ]]; then
   execute_sudo chmod -R 755 "${CUPERTINO_PREFIX}"
 fi
 
-# TODO: Download and install cupertino binary
-# For now, we'll just create a placeholder
+# Install cupertino binary
 ohai "Installing Cupertino binary..."
-if [[ ! -f "${CUPERTINO_PREFIX}/bin/cupertino" ]]; then
-  # This would download the actual binary in production
-  # curl -L "https://github.com/user/cupertino/releases/latest/download/cupertino-darwin" \
-  #   -o "${CUPERTINO_PREFIX}/bin/cupertino"
-  
-  # For now, create a placeholder
-  echo "#!/bin/bash" > "${CUPERTINO_PREFIX}/bin/cupertino"
-  echo 'echo "Cupertino placeholder - replace with actual binary"' >> "${CUPERTINO_PREFIX}/bin/cupertino"
-  chmod +x "${CUPERTINO_PREFIX}/bin/cupertino"
+
+# Check for Go
+if ! command -v go &>/dev/null; then
+  abort "Go is required to install Cupertino. Install it from https://go.dev/dl/"
 fi
+
+TEMP_DIR="$(mktemp -d)"
+trap 'rm -rf "${TEMP_DIR}"' EXIT
+
+ohai "Cloning repository..."
+git clone --depth 1 https://github.com/arnavsurve/cupertino.git "${TEMP_DIR}/cupertino" 2>/dev/null
+
+ohai "Building from source..."
+(cd "${TEMP_DIR}/cupertino/cli" && go build -o "${CUPERTINO_PREFIX}/bin/cupertino" .)
+chmod +x "${CUPERTINO_PREFIX}/bin/cupertino"
 
 # Set up PATH
 ohai "Setting up PATH..."
