@@ -25,8 +25,17 @@ cupertino install ./mypackage.tar.gz
 # List installed packages
 cupertino list
 
+# Search for packages
+cupertino search <query>
+
+# Show package details
+cupertino info <package>
+
 # Uninstall a package
 cupertino uninstall <package>
+
+# Upgrade packages
+cupertino upgrade [package]
 
 # Skip confirmation prompts
 cupertino install -y <package>
