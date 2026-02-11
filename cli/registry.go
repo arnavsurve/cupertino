@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const defaultRegistry = "http://localhost:8080"
+const defaultRegistry = "https://cupertino.sh"
 
 type RegistryPackage struct {
 	Name         string            `json:"name"`

@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -135,6 +137,175 @@ func list() {
 	}
 }
 
+func search(query string) {
+	registryURL := getRegistryURL()
+	url := fmt.Sprintf("%s/api/search?q=%s&limit=20", registryURL, query)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		fmt.Printf("Error: registry returned HTTP %d\n", resp.StatusCode)
+		return
+	}
+
+	var results []RegistryPackageInfo
+	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
+		fmt.Printf("Error parsing results: %v\n", err)
+		return
+	}
+
+	if len(results) == 0 {
+		fmt.Printf("No packages found for '%s'\n", query)
+		return
+	}
+
+	for _, pkg := range results {
+		fmt.Printf("  %-20s %-10s %s\n", pkg.Name, pkg.Latest, pkg.Description)
+	}
+}
+
+func info(packageName string) {
+	registryURL := getRegistryURL()
+	pkgInfo, err := getPackageInfo(registryURL, packageName)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Printf("%s\n", pkgInfo.Name)
+	if pkgInfo.Description != "" {
+		fmt.Printf("  %s\n", pkgInfo.Description)
+	}
+	fmt.Println()
+
+	fmt.Printf("  latest:    %s\n", pkgInfo.Latest)
+	fmt.Printf("  downloads: %d\n", pkgInfo.Downloads)
+	if pkgInfo.License != "" {
+		fmt.Printf("  license:   %s\n", pkgInfo.License)
+	}
+	if pkgInfo.Homepage != "" {
+		fmt.Printf("  homepage:  %s\n", pkgInfo.Homepage)
+	}
+
+	fmt.Printf("\n  versions:  %s\n", strings.Join(pkgInfo.Versions, ", "))
+
+	// Check if installed locally
+	db, err := NewSQLitePackageDB(getDatabasePath())
+	if err == nil {
+		defer db.Close()
+		if db.HasAnyVersion(packageName) {
+			installedVersion, _ := db.GetInstalledVersion(packageName)
+			fmt.Printf("\n  installed: %s\n", installedVersion)
+		}
+	}
+}
+
+func upgrade(packageName string) {
+	registryURL := getRegistryURL()
+
+	db, err := NewSQLitePackageDB(getDatabasePath())
+	if err != nil {
+		fmt.Printf("Error opening database: %v\n", err)
+		return
+	}
+	defer db.Close()
+
+	if !db.HasAnyVersion(packageName) {
+		fmt.Printf("Package '%s' is not installed\n", packageName)
+		return
+	}
+
+	installedVersion, err := db.GetInstalledVersion(packageName)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	pkgInfo, err := getPackageInfo(registryURL, packageName)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if pkgInfo.Latest == installedVersion {
+		fmt.Printf("%s is already up to date (v%s)\n", packageName, installedVersion)
+		return
+	}
+
+	fmt.Printf("%s: %s -> %s\n", packageName, installedVersion, pkgInfo.Latest)
+
+	if !confirmAction("Upgrade?") {
+		fmt.Println("Upgrade cancelled.")
+		return
+	}
+
+	if err := installFromRegistry(packageName + "@" + pkgInfo.Latest); err != nil {
+		fmt.Printf("Error: %v\n", err)
+	}
+}
+
+func upgradeAll() {
+	db, err := NewSQLitePackageDB(getDatabasePath())
+	if err != nil {
+		fmt.Printf("Error opening database: %v\n", err)
+		return
+	}
+	defer db.Close()
+
+	packages, err := db.List()
+	if err != nil {
+		fmt.Printf("Error listing packages: %v\n", err)
+		return
+	}
+
+	if len(packages) == 0 {
+		fmt.Println("No packages installed")
+		return
+	}
+
+	registryURL := getRegistryURL()
+	var upgradeable []struct{ name, from, to string }
+
+	for _, pkg := range packages {
+		pkgInfo, err := getPackageInfo(registryURL, pkg.Name)
+		if err != nil {
+			continue
+		}
+		if pkgInfo.Latest != pkg.Version {
+			upgradeable = append(upgradeable, struct{ name, from, to string }{
+				pkg.Name, pkg.Version, pkgInfo.Latest,
+			})
+		}
+	}
+
+	if len(upgradeable) == 0 {
+		fmt.Println("All packages are up to date")
+		return
+	}
+
+	fmt.Printf("%d package(s) can be upgraded:\n", len(upgradeable))
+	for _, u := range upgradeable {
+		fmt.Printf("  %-20s %s -> %s\n", u.name, u.from, u.to)
+	}
+
+	if !confirmAction("Upgrade all?") {
+		fmt.Println("Upgrade cancelled.")
+		return
+	}
+
+	for _, u := range upgradeable {
+		fmt.Printf("\nUpgrading %s...\n", u.name)
+		if err := installFromRegistry(u.name + "@" + u.to); err != nil {
+			fmt.Printf("Error upgrading %s: %v\n", u.name, err)
+		}
+	}
+}
+
 func brewInstall(args []string) {
 	if len(args) == 0 {
 		fmt.Println("Error: cupertino brew install requires a package name")
@@ -189,7 +360,12 @@ func showUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("  cupertino install <package>    Install a package")
 	fmt.Println("  cupertino uninstall <package>  Remove a package")
+	fmt.Println("  cupertino search <query>       Search for packages")
+	fmt.Println("  cupertino info <package>       Show package details")
+	fmt.Println("  cupertino upgrade [package]    Upgrade packages")
 	fmt.Println("  cupertino list                 List installed packages")
+	fmt.Println("  cupertino init                 Create a package.json")
+	fmt.Println("  cupertino publish              Publish a package")
 	fmt.Println("  cupertino help                 Show this help")
 }
 

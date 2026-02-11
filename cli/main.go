@@ -58,6 +58,30 @@ func main() {
 			return
 		}
 		uninstall(args[1:])
+	case "search":
+		if len(args) < 2 {
+			fmt.Println("Error: search requires a query")
+			fmt.Println("Usage: cupertino search <query>")
+			return
+		}
+		search(args[1])
+	case "info":
+		if len(args) < 2 {
+			fmt.Println("Error: info requires a package name")
+			fmt.Println("Usage: cupertino info <package>")
+			return
+		}
+		info(args[1])
+	case "upgrade":
+		if len(args) < 2 {
+			upgradeAll()
+		} else {
+			upgrade(args[1])
+		}
+	case "publish":
+		publish(args[1:])
+	case "init":
+		initPackage()
 	case "list":
 		list()
 	case "help", "--help", "-h":
